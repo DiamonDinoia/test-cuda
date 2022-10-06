@@ -7,6 +7,8 @@
 #include <iostream>
 #include <memory>
 
+#include "vectorAdd.h"
+
 __global__ void vectorAdd(const float *A, const float *B, float *C, int numElements) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < numElements) {
@@ -14,14 +16,7 @@ __global__ void vectorAdd(const float *A, const float *B, float *C, int numEleme
     }
 }
 
-int main() {
-    if (cuda::device::count() == 0) {
-        std::cerr << "No CUDA devices on this system"
-                  << "\n";
-        exit(EXIT_FAILURE);
-    }
-#pragma omp parallel for
-    for (auto i = 0; i < cuda::device::count(); i++) {
+void vectorAddMulti(const int i) {
         int numElements = 50000;
         size_t size     = numElements * sizeof(float);
         std::cout << "[Vector addition of " << numElements << " elements]\n";
@@ -64,4 +59,3 @@ int main() {
         std::cout << "Test PASSED\n";
         std::cout << "SUCCESS\n";
     }
-}

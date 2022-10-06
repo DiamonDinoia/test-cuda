@@ -1,0 +1,9 @@
+//
+// Created by mbarbone on 10/6/22.
+//
+
+#ifndef TEST_CUDA_CUDA_API_WRAPPERS_MULTI_EXAMPLE_VECTORADD_H_
+#define TEST_CUDA_CUDA_API_WRAPPERS_MULTI_EXAMPLE_VECTORADD_H_
+
+void vectorAddMulti(const int i);
+#endif  // TEST_CUDA_CUDA_API_WRAPPERS_MULTI_EXAMPLE_VECTORADD_H_

@@ -3,6 +3,8 @@ project(test_API_Wrappers_omp VERSION 1 LANGUAGES CXX)
 
 include(CheckLanguage)
 
+option(ENABLE_OMP "enables omp for parallelism" OFF)
+
 # USING CPM TO HANDLE DEPENDENCIES
 set(CPM_DOWNLOAD_VERSION 0.34.0)
 
@@ -23,6 +25,14 @@ if (NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
 endif ()
 
 include(${CPM_DOWNLOAD_LOCATION})
+
+CPMAddPackage(
+        NAME cudawrappers
+        GIT_REPOSITORY https://github.com/eyalroz/cuda-api-wrappers.git
+        GIT_TAG v0.5.4
+        EXCLUDE_FROM_ALL YES
+        GIT_SHALLOW YES
+)
 
 if ("cxx_std_23" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
     message(STATUS "Using C++23 standard")
@@ -60,17 +70,9 @@ elseif ("cuda_std_14" IN_LIST CMAKE_CUDA_COMPILE_FEATURES)
 else ()
     message(FATAL_ERROR "Cannot detect CUDA_STANDARD of CUDA14 or newer.")
 endif ()
+
+set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
-
-CPMAddPackage(
-    NAME cudawrappers
-    GIT_REPOSITORY https://github.com/eyalroz/cuda-api-wrappers.git
-    GIT_TAG v0.5.4
-    EXCLUDE_FROM_ALL YES
-    GIT_SHALLOW YES
-)
-find_package(OpenMP REQUIRED)
 
 function(add_compilation_flags variableName)
     set(old_flags ${${variableName}})
@@ -80,10 +82,18 @@ function(add_compilation_flags variableName)
         add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${old_flags}>$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${CUDA_flags}>")
     endif ()
 endfunction()
-add_compilation_flags(${OpenMP_CXX_FLAGS})
+
+list(APPEND LIBRARIES cuda-api-wrappers::runtime-and-driver)
+
+if (ENABLE_OMP)
+    find_package(OpenMP REQUIRED)
+    add_compilation_flags(${OpenMP_CXX_FLAGS})
+    add_definitions(-DENABLE_OMP=1)
+    list(APPEND LIBRARIES OpenMP::OpenMP_CXX)
+endif ()
 
 set(GPU_FLAGS --default-stream per-thread)
 add_compile_options("$<$<COMPILE_LANGUAGE:CUDA>:${GPU_FLAGS}>")
 
-add_executable(test_multi vectorAdd.cu)
-target_link_libraries(test_multi cuda-api-wrappers::runtime-and-driver OpenMP::OpenMP_CXX)
+add_executable(test_multi vectorAdd.cu main.cpp vectorAdd.h)
+target_link_libraries(test_multi  ${LIBRARIES})
