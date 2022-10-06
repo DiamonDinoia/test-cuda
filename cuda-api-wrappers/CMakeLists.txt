@@ -29,7 +29,7 @@ enable_language(CUDA)
 CPMAddPackage(
     NAME cudawrappers
     GIT_REPOSITORY https://github.com/eyalroz/cuda-api-wrappers.git
-    GIT_TAG v0.5.5
+    GIT_TAG development
     EXCLUDE_FROM_ALL YES
     GIT_SHALLOW YES
 )
