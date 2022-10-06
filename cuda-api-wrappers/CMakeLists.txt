@@ -1,0 +1,75 @@
+cmake_minimum_required(VERSION 3.19)
+project(test_API_Wrappers VERSION 1 LANGUAGES CXX)
+
+include(CheckLanguage)
+
+# USING CPM TO HANDLE DEPENDENCIES
+set(CPM_DOWNLOAD_VERSION 0.34.0)
+
+if (CPM_SOURCE_CACHE)
+    set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+elseif (DEFINED ENV{CPM_SOURCE_CACHE})
+    set(CPM_DOWNLOAD_LOCATION "$ENV{CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+else ()
+    set(CPM_DOWNLOAD_LOCATION "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+endif ()
+
+if (NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
+    message(STATUS "Downloading CPM.cmake to ${CPM_DOWNLOAD_LOCATION}")
+    file(DOWNLOAD
+            https://github.com/TheLartians/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
+            ${CPM_DOWNLOAD_LOCATION}
+            )
+endif ()
+
+include(${CPM_DOWNLOAD_LOCATION})
+
+if ("cxx_std_23" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    message(STATUS "Using C++23 standard")
+    set(CMAKE_CXX_STANDARD 23)
+elseif ("cxx_std_20" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    message(STATUS "Using C++20 standard")
+    set(CMAKE_CXX_STANDARD 20)
+elseif ("cxx_std_17" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    set(CMAKE_CXX_STANDARD 17)
+    message(STATUS "Detected support for C++17 standard")
+elseif ("cxx_std_14" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    set(CMAKE_CXX_STANDARD 14)
+    message(STATUS "Detected support for C++14 standard")
+else ()
+    message(FATAL_ERROR "Cannot detect CXX_STANDARD of C++14 or newer.")
+endif ()
+
+check_language(CUDA)
+if (NOT CMAKE_CUDA_COMPILER)
+    message(FATAL_ERROR "Requested CUDA support, but no CMAKE_CUDA_COMPILER available")
+endif ()
+enable_language(CUDA)
+if ("cuda_std_23" IN_LIST CMAKE_CUDA_COMPILE_FEATURES)
+    set(CMAKE_CUDA_STANDARD 23)
+    message(STATUS "Detected support for CUDA23 standard")
+elseif ("cuda_std_20" IN_LIST CMAKE_CUDA_COMPILE_FEATURES)
+    set(CMAKE_CUDA_STANDARD 20)
+    message(STATUS "Detected support for CUDA20 standard")
+elseif ("cuda_std_17" IN_LIST CMAKE_CUDA_COMPILE_FEATURES)
+    set(CMAKE_CUDA_STANDARD 17)
+    message(STATUS "Detected support for CUDA17 standard")
+elseif ("cuda_std_14" IN_LIST CMAKE_CUDA_COMPILE_FEATURES)
+    set(CMAKE_CUDA_STANDARD 14)
+    message(STATUS "Detected support for CUDA14 standard")
+else ()
+    message(FATAL_ERROR "Cannot detect CUDA_STANDARD of C++14 or newer.")
+endif ()
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
+
+CPMAddPackage(
+    NAME cudawrappers
+    GIT_REPOSITORY https://github.com/eyalroz/cuda-api-wrappers.git
+    GIT_TAG v0.5.5
+    EXCLUDE_FROM_ALL YES
+    GIT_SHALLOW YES
+)
+
+add_executable(test_executable vectorAdd.cu)
+target_link_libraries(test_executable cuda-api-wrappers::runtime-and-driver)
