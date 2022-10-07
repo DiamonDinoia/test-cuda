@@ -36,4 +36,4 @@ CPMAddPackage(
 
 add_executable(test_executable vectorAdd.cu)
 target_link_libraries(test_executable cuda-api-wrappers::runtime-and-driver)
-set_property(TARGET test_executable PROPERTY CXX_STANDARD 14)
+set_property(TARGET test_executable PROPERTY CXX_STANDARD 17)

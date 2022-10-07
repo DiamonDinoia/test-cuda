@@ -2,7 +2,7 @@
 // Created by mbarbone on 10/6/22.
 //
 #include <cuda/api.hpp>
-
+#include <iostream>
 #include "vectorAdd.h"
 
 int main() {
